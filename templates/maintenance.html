@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maintenance · NeonTube</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .glass{background:rgba(20,20,30,0.8);backdrop-filter:blur(12px);border:1px solid rgba(0,255,255,0.2);border-radius:24px;padding:40px;max-width:600px;width:100%;box-shadow:0 0 60px rgba(0,243,255,0.2)}
+    h1{color:#00f3ff;text-shadow:0 0 20px #00f3ff;margin-bottom:15px}
+    p{color:#b0b0c0;margin-bottom:30px}
+    .admin-link{color:#00f3ff;cursor:pointer;text-decoration:underline;font-size:0.9rem}
+    .hidden{display:none !important}
+    .btn{background:#00f3ff;border:none;padding:12px 24px;border-radius:30px;font-weight:600;cursor:pointer;color:#000}
+    .chat-container{margin-top:30px;border-top:1px solid rgba(0,255,255,0.2);padding-top:20px}
+    .chat-messages{background:rgba(0,0,0,0.3);border-radius:16px;padding:15px;height:250px;overflow-y:auto;margin-bottom:15px}
+    .chat-message{margin-bottom:12px;padding:8px 12px;background:rgba(0,243,255,0.1);border-radius:12px}
+    .chat-message .name{font-weight:600;color:#00f3ff}
+    .chat-message .time{font-size:0.7rem;color:#888;margin-left:10px}
+    .chat-message .text{word-break:break-word}
+    .chat-input-group{display:flex;gap:10px}
+    .chat-input{flex:1;padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,255,255,0.3);border-radius:30px;color:#fff;outline:none}
+    .chat-input:focus{border-color:#00f3ff}
+    .name-input{width:120px}
+    .send-btn{background:#39ff14;border:none;border-radius:30px;padding:0 20px;font-weight:600;cursor:pointer;color:#000}
+  </style>
+</head>
+<body>
+  <div class="glass">
+    <h1><i class="fas fa-tools"></i> Under Maintenance</h1>
+    <p id="maintenanceMessage">{{ message }}</p>
+    <div id="adminPrompt">
+      <span class="admin-link" onclick="showAdminLogin()">Admin? Click here</span>
+    </div>
+    <div id="adminLoginForm" class="hidden">
+      <input type="password" id="adminPassword" placeholder="Admin password" style="width:100%;padding:12px;margin:15px 0;background:rgba(0,0,0,0.4);border:1px solid #00f3ff;border-radius:30px;color:#fff;outline:none">
+      <button class="btn" onclick="loginAdmin()">Login</button>
+      <p id="loginError" style="color:#ff4d4d;margin-top:10px"></p>
+    </div>
+
+    <!-- Live Chat Section -->
+    <div class="chat-container">
+      <h4 style="margin-bottom:10px;color:#00f3ff"><i class="far fa-comments"></i> Chat with Admin</h4>
+      <div class="chat-messages" id="chatMessages">
+        <div style="color:#b0b0c0;text-align:center">Loading messages...</div>
+      </div>
+      <div class="chat-input-group">
+        <input type="text" id="chatName" class="chat-input name-input" placeholder="Your name" maxlength="30" value="User">
+        <input type="text" id="chatMessage" class="chat-input" placeholder="Type a message...">
+        <button class="send-btn" id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let lastMessageCount = 0;
+    let pollingInterval = null;
+
+    async function loadMessages() {
+      try {
+        const res = await fetch('/api/chat/messages');
+        const data = await res.json();
+        const messages = data.messages || [];
+        const container = document.getElementById('chatMessages');
+        if (messages.length === 0) {
+          container.innerHTML = '<div style="color:#b0b0c0;text-align:center">No messages yet. Say hello!</div>';
+          lastMessageCount = 0;
+          return;
+        }
+        if (messages.length !== lastMessageCount) {
+          lastMessageCount = messages.length;
+          container.innerHTML = messages.map(msg => {
+            const date = new Date(msg.timestamp * 1000);
+            const timeStr = date.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            return `<div class="chat-message"><span class="name">${escapeHtml(msg.name)}</span><span class="time">${timeStr}</span><div class="text">${escapeHtml(msg.message)}</div></div>`;
+          }).join('');
+          container.scrollTop = container.scrollHeight;
+        }
+      } catch(e) {
+        console.error('Chat error:', e);
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function sendMessage() {
+      const name = document.getElementById('chatName').value.trim() || 'Anonymous';
+      const message = document.getElementById('chatMessage').value.trim();
+      if (!message) return;
+      try {
+        await fetch('/api/chat/send', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name, message})
+        });
+        document.getElementById('chatMessage').value = '';
+        loadMessages();
+      } catch(e) {
+        alert('Failed to send message');
+      }
+    }
+
+    document.getElementById('sendChatBtn').addEventListener('click', sendMessage);
+    document.getElementById('chatMessage').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    // Start polling
+    loadMessages();
+    pollingInterval = setInterval(loadMessages, 3000);
+
+    // Admin login (unchanged)
+    function showAdminLogin(){
+      document.getElementById('adminPrompt').classList.add('hidden');
+      document.getElementById('adminLoginForm').classList.remove('hidden');
+    }
+    async function loginAdmin(){
+      const pwd = document.getElementById('adminPassword').value;
+      const res = await fetch('/admin/login', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({password:pwd})
+      });
+      if(res.ok){
+        window.location.href = '/';
+      } else {
+        document.getElementById('loginError').textContent = 'Invalid password';
+      }
+    }
+  </script>
+</body>
+</html>

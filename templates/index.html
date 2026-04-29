@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NeonTube</title>
+  <link rel="icon" type="image/png" href="https://i.ibb.co/27sjtT1S/1000125710-removebg-preview.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{--bg:#0a0a0a;--glass:rgba(20,20,30,0.7);--border:rgba(0,255,255,0.2);--blue:#00f3ff;--green:#39ff14;--text:#fff;--text2:#b0b0c0;--radius:24px;--nav:70px}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:var(--nav)}
+    .bg{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(circle at 50% 50%,rgba(0,243,255,0.08) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(57,255,20,0.05) 0%,transparent 40%);animation:pulse 12s infinite alternate;z-index:0}
+    @keyframes pulse{0%{opacity:0.6}100%{opacity:1}}
+    .app{position:relative;z-index:1;max-width:1300px;margin:0 auto;padding:20px 20px 0}
+    .glass{background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav);background:rgba(10,10,15,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;z-index:100}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;color:var(--text2);font-size:12px;cursor:pointer;padding:8px 0}
+    .nav-item i{font-size:22px;margin-bottom:4px}
+    .nav-item.active{color:var(--blue);text-shadow:0 0 10px var(--blue)}
+    .page{display:none}
+    .page.active{display:block}
+    /* Enhanced Broadcast Banner */
+    .broadcast-banner{background:rgba(0,20,30,0.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1.5px solid var(--blue);border-radius:40px;padding:16px 25px;margin-bottom:25px;display:flex;align-items:center;gap:18px;box-shadow:0 0 40px rgba(0,243,255,0.4), inset 0 0 15px rgba(0,243,255,0.1);animation:bannerGlow 3s infinite alternate, slideDown 0.4s ease;position:relative;overflow:hidden}
+    @keyframes bannerGlow{0%{box-shadow:0 0 30px rgba(0,243,255,0.3), inset 0 0 10px rgba(0,243,255,0.05)}100%{box-shadow:0 0 50px rgba(0,243,255,0.6), inset 0 0 20px rgba(0,243,255,0.15)}}
+    @keyframes slideDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+    .broadcast-banner::before{content:'';position:absolute;top:0;left:-100%;width:200%;height:100%;background:linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);animation:shimmer 6s infinite}
+    @keyframes shimmer{0%{left:-100%}50%{left:0%}100%{left:100%}}
+    .broadcast-icon{font-size:32px;color:var(--green);filter:drop-shadow(0 0 12px var(--green));flex-shrink:0;animation:pulseIcon 2s infinite}
+    @keyframes pulseIcon{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+    .broadcast-content{flex:1;color:var(--text);font-weight:500;font-size:1.05rem;line-height:1.5;word-break:break-word;text-shadow:0 0 8px rgba(0,243,255,0.5)}
+    .broadcast-close{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);color:var(--text2);font-size:20px;cursor:pointer;padding:8px;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;transition:all 0.25s;flex-shrink:0;backdrop-filter:blur(5px)}
+    .broadcast-close:hover{background:rgba(255,80,80,0.25);color:#ff8080;border-color:#ff8080;transform:scale(1.1) rotate(90deg);box-shadow:0 0 15px rgba(255,80,80,0.5)}
+    .header{padding:30px;margin-bottom:25px;text-align:center;position:relative}
+    .neon-blue{font-size:3.5rem;font-weight:700;text-shadow:0 0 15px var(--blue),0 0 30px var(--blue)}
+    .neon-green{text-shadow:0 0 15px var(--green),0 0 30px var(--green)}
+    .card{padding:25px;margin-bottom:25px}
+    .input-group{display:flex;gap:15px;flex-wrap:wrap;align-items:center}
+    .neon-input{flex:1;min-width:250px;padding:16px 20px;background:rgba(0,0,0,0.4);border:2px solid var(--border);border-radius:16px;color:var(--text);font-size:1rem;outline:none}
+    .neon-input:focus{border-color:var(--blue);box-shadow:0 0 25px var(--blue)}
+    .neon-button{padding:16px 32px;background:linear-gradient(135deg,rgba(0,243,255,0.2),rgba(57,255,20,0.1));border:1px solid var(--blue);border-radius:16px;color:var(--text);font-weight:600;cursor:pointer;transition:all 0.3s}
+    .neon-button:hover{box-shadow:0 0 30px var(--blue);transform:translateY(-2px)}
+    #extractBtn{padding:16px 32px!important;font-size:1.2rem!important;background:linear-gradient(135deg,var(--blue),var(--green))!important;border:none!important;box-shadow:0 0 30px var(--blue)!important;color:#000!important;white-space:nowrap}
+    .progress-container{width:100%;height:8px;background:rgba(255,255,255,0.1);border-radius:20px;margin:20px 0 8px;overflow:hidden}
+    .progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:20px;transition:width 0.3s ease}
+    .progress-percent{text-align:right;font-size:1rem;font-weight:600;color:var(--blue)}
+    .hidden{display:none!important}
+    .error{color:#ff4d4d;margin-top:10px}
+    /* Quality Toggle – unique design */
+    .quality-toggle{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.3);border-radius:30px;padding:4px 12px;border:1px solid var(--border)}
+    .toggle-track{width:48px;height:26px;background:rgba(255,255,255,0.15);border-radius:26px;cursor:pointer;position:relative;transition:0.3s;border:1px solid var(--border)}
+    .toggle-track.active{background:linear-gradient(135deg,var(--blue),var(--green));border-color:var(--green);box-shadow:0 0 15px var(--blue)}
+    .toggle-thumb{width:22px;height:22px;background:#fff;border-radius:50%;position:absolute;top:1px;left:2px;transition:0.3s;box-shadow:0 0 5px rgba(0,0,0,0.3)}
+    .toggle-track.active .toggle-thumb{left:24px}
+    .toggle-label{font-weight:700;font-size:0.85rem;color:var(--text);min-width:50px;text-align:center;text-transform:uppercase;letter-spacing:1px}
+    /* Fixed preview card */
+    .preview-wrapper{max-width:800px;margin:0 auto;aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden}
+    #videoPlayer{width:100%;height:100%;object-fit:contain}
+    /* Overlays (login/admin) */
+    .login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,10,20,0.8);backdrop-filter:blur(12px);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
+    .login-box{max-width:450px;width:100%;background:var(--glass);backdrop-filter:blur(20px);border:2px solid var(--blue);border-radius:40px;padding:40px;text-align:center;box-shadow:0 0 60px rgba(0,243,255,0.5);animation:fadeInUp 0.4s;position:relative}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    .login-box h2{color:var(--blue);margin-bottom:20px}
+    .login-box input{width:100%;padding:16px;background:rgba(0,0,0,0.4);border:2px solid var(--blue);border-radius:20px;color:#fff;font-size:1.2rem;text-align:center;text-transform:uppercase}
+    .login-box .btn{margin-top:20px;width:100%}
+    .close-overlay-btn{position:absolute;top:15px;right:15px;background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;transition:all 0.2s}
+    .close-overlay-btn:hover{color:var(--blue);transform:scale(1.1)}
+    /* Settings & Admin cards */
+    .setting-item{padding:20px;background:rgba(0,0,0,0.2);border-radius:20px;margin-bottom:15px}
+    .setting-item h3{margin-bottom:10px;color:var(--blue)}
+    .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:0.8rem}
+    .badge-success{background:var(--green);color:#000}
+    .badge-danger{background:#ff4d4d;color:#fff}
+    .device-id-box{background:rgba(0,243,255,0.1);border:2px dashed var(--blue);border-radius:20px;padding:20px;text-align:center;margin:15px 0}
+    .device-id{font-family:monospace;font-size:2rem;font-weight:700;color:var(--green);letter-spacing:3px}
+    .admin-user-card{background:rgba(0,0,0,0.2);border-radius:16px;padding:15px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+    .admin-user-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .history-list{display:flex;flex-direction:column;gap:10px}
+    .history-item{display:flex;align-items:center;gap:15px;padding:12px 15px;background:rgba(0,0,0,0.2);border-radius:14px;cursor:pointer;border:1px solid transparent}
+    .history-item:hover{border-color:var(--blue);background:rgba(0,243,255,0.1)}
+    .history-thumb{width:80px;height:45px;object-fit:cover;border-radius:8px;flex-shrink:0}
+    .history-item div{flex:1;min-width:0}
+    .history-item h4{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .clear-btn{background:none;border:1px solid var(--border);border-radius:20px;padding:8px 16px;color:var(--text2);cursor:pointer;font-size:0.9rem}
+    .clear-btn:hover{color:var(--blue);border-color:var(--blue);background:rgba(0,243,255,0.1)}
+    .days-bar-container{width:100%;height:12px;background:rgba(255,255,255,0.1);border-radius:20px;margin:20px 0;overflow:hidden}
+    .days-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:20px;transition:width 0.6s ease}
+    .days-text-large{font-size:2rem;font-weight:700;color:var(--green);text-align:center}
+    .login-prompt{text-align:center;padding:30px}
+    .broadcast-textarea{width:100%;padding:16px;background:rgba(0,0,0,0.3);border:2px solid var(--border);border-radius:20px;color:var(--text);font-size:1rem;resize:vertical;min-height:100px;outline:none}
+    .broadcast-textarea:focus{border-color:var(--blue);box-shadow:0 0 20px rgba(0,243,255,0.3)}
+    .logs-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px}
+    .logs-content{max-width:600px;width:100%;max-height:80vh;overflow-y:auto;background:var(--glass);border-radius:24px;padding:30px}
+    /* Admin auth toggle */
+    .admin-toggle-row{display:flex;align-items:center;justify-content:space-between;margin:15px 0}
+    @media (max-width:768px){.neon-blue{font-size:2.5rem}.device-id{font-size:1.5rem}}
+  </style>
+</head>
+<body>
+<div class="bg"></div>
+
+<!-- User Login Overlay -->
+<div id="loginOverlay" class="login-overlay hidden">
+  <div class="login-box">
+    <button class="close-overlay-btn" onclick="closeAllOverlays()"><i class="fas fa-times"></i></button>
+    <h2>🔐 Enter Access Code</h2>
+    <p style="color:var(--text2);margin-bottom:20px">Contact vipeagle7@gmail.com</p>
+    <input type="text" id="accessCodeInput" placeholder="Your Code" maxlength="20" autocomplete="off">
+    <button class="neon-button btn" id="submitCodeBtn" style="background:var(--blue);color:#000;">Unlock</button>
+    <p id="loginError" class="error"></p>
+    <p style="margin-top:20px;font-size:0.8rem;color:var(--text2)">
+      <a href="#" id="adminLoginLink" style="color:var(--text2);">Admin Login</a>
+    </p>
+  </div>
+</div>
+
+<!-- Admin Login Overlay -->
+<div id="adminLoginOverlay" class="login-overlay hidden">
+  <div class="login-box" style="border-color:#ff4d4d;">
+    <button class="close-overlay-btn" onclick="closeAllOverlays()"><i class="fas fa-times"></i></button>
+    <h2 style="color:#ff4d4d;">👑 Admin Access</h2>
+    <input type="password" id="adminPasswordInput" placeholder="Admin Password">
+    <button class="neon-button btn" id="submitAdminBtn" style="background:#ff4d4d;color:#fff;">Login</button>
+    <p id="adminLoginError" class="error"></p>
+    <p style="margin-top:20px;"><a href="#" id="backToUserLink" style="color:var(--text2);">← Close</a></p>
+  </div>
+</div>
+
+<div class="app">
+  <!-- Stunning Broadcast Banner -->
+  <div id="broadcastBanner" class="broadcast-banner hidden">
+    <div class="broadcast-icon"><i class="fas fa-bolt"></i></div>
+    <div class="broadcast-content" id="broadcastMessageText"></div>
+    <button class="broadcast-close" onclick="dismissBroadcast()"><i class="fas fa-times"></i></button>
+  </div>
+
+  <!-- STREAMER PAGE -->
+  <div id="streamerPage" class="page active">
+    <div class="header glass">
+      <h1><span class="neon-blue">Neon</span><span class="neon-green">Tube</span></h1>
+      <p style="color:var(--text2);margin-top:10px">⚡ Instant 720p streaming · Normal / High quality</p>
+    </div>
+
+    <div class="card glass">
+      <div class="input-group">
+        <input type="text" id="urlInput" placeholder="📎 Paste YouTube URL..." class="neon-input">
+        <div class="quality-toggle" id="qualityToggle">
+          <div class="toggle-track" onclick="toggleQuality()">
+            <div class="toggle-thumb"></div>
+          </div>
+          <span class="toggle-label" id="qualityLabel">Normal</span>
+        </div>
+        <button id="extractBtn" class="neon-button"><i class="fas fa-bolt"></i> Stream</button>
+      </div>
+      <div id="errorMessage" class="error"></div>
+    </div>
+
+    <div id="loadingContainer" class="card glass hidden">
+      <div class="status-text">
+        <span id="statusMessage">🔍 Fetching stream info...</span>
+        <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
+        <div id="progressPercent" class="progress-percent">0%</div>
+      </div>
+    </div>
+
+    <div id="previewCard" class="card glass hidden">
+      <div style="margin-bottom:20px">
+        <h3 id="videoTitle"></h3>
+        <p><span id="duration"></span></p>
+      </div>
+      <div class="preview-wrapper">
+        <video id="videoPlayer" controls></video>
+      </div>
+    </div>
+
+    <div class="history-card glass" id="historyCard">
+      <div class="history-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+        <h3><i class="fas fa-history"></i> Recent</h3>
+        <button id="clearHistoryBtn" class="clear-btn"><i class="fas fa-trash-alt"></i> Clear</button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS PAGE -->
+  <div id="settingsPage" class="page">
+    <div class="header glass">
+      <h1><span class="neon-blue">Settings</span></h1>
+    </div>
+    <div class="card glass">
+      <div id="settingsLoggedOut" class="login-prompt hidden">
+        <i class="fas fa-user-lock" style="font-size:3rem;color:var(--blue);margin-bottom:20px"></i>
+        <h3>Not Logged In</h3>
+        <p style="color:var(--text2);margin:15px 0">Sign in to view your account details.</p>
+        <button class="neon-button" onclick="document.getElementById('loginOverlay').classList.remove('hidden')">Login</button>
+      </div>
+      <div id="settingsLoggedIn">
+        <div class="setting-item">
+          <h3><i class="fas fa-key"></i> Account</h3>
+          <p>Code: <code id="settingsCode" style="font-size:1.2rem;"></code></p>
+          <div class="days-bar-container">
+            <div id="daysBar" class="days-bar" style="width:0%"></div>
+          </div>
+          <div class="days-text-large" id="daysCount">0</div>
+          <p style="text-align:center;color:var(--text2)">days remaining</p>
+          <p>Expires: <span id="settingsExpires"></span></p>
+        </div>
+        <div class="setting-item">
+          <h3><i class="fas fa-mobile-alt"></i> Device Binding</h3>
+          <div class="device-id-box">
+            <div style="font-size:0.9rem;color:var(--text2);margin-bottom:5px">Your Device ID</div>
+            <div class="device-id" id="settingsDeviceId">-----</div>
+          </div>
+          <p id="deviceStatus"></p>
+          <p><small>This account only works on this device.</small></p>
+        </div>
+        <div class="setting-item">
+          <h3><i class="fas fa-info-circle"></i> Top-up</h3>
+          <p>Contact <strong>vipeagle7@gmail.com</strong> to add funds.</p>
+        </div>
+        <button class="neon-button" style="background:#ff4d4d20;border-color:#ff4d4d;color:#ff8080;width:100%;" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN PAGE -->
+  <div id="adminPage" class="page">
+    <div class="header glass">
+      <h1><span class="neon-blue">Admin</span> <span class="neon-green">Panel</span></h1>
+    </div>
+    <div class="card glass">
+      <h3><i class="fas fa-shield-alt"></i> Master Auth Toggle</h3>
+      <div class="admin-toggle-row">
+        <span>Require user login</span>
+        <div class="toggle-track" id="authToggle" onclick="toggleAuthRequired()">
+          <div class="toggle-thumb"></div>
+        </div>
+      </div>
+      <p style="color:var(--text2);font-size:0.8rem">When off, anyone can use the streamer without an account.</p>
+    </div>
+    <div class="card glass">
+      <h3><i class="fas fa-plus-circle"></i> Create User</h3>
+      <label style="color:var(--text2);font-size:0.9rem">Username (optional, auto-generates if empty)</label>
+      <input type="text" id="adminUsername" placeholder="Leave blank for auto" class="neon-input">
+      <label style="color:var(--text2);font-size:0.9rem;margin-top:10px;display:block">Expiration Date (optional)</label>
+      <input type="date" id="adminExpires" class="neon-input">
+      <p style="color:var(--text2);font-size:0.8rem;margin-top:5px">Days will be calculated automatically.</p>
+      <button class="neon-button" onclick="adminCreateUser()" style="margin-top:15px;width:100%">Create User</button>
+      <div id="generatedCode" style="margin-top:15px;font-size:1.2rem;text-align:center;"></div>
+    </div>
+    <div class="card glass">
+      <h3><i class="fas fa-users"></i> Users</h3>
+      <div id="adminUserList"></div>
+    </div>
+    <div class="card glass">
+      <h3><i class="fas fa-bullhorn"></i> Send Broadcast</h3>
+      <textarea id="broadcastMessage" class="broadcast-textarea" placeholder="Type your announcement..."></textarea>
+      <button class="neon-button" onclick="sendBroadcast()" style="margin-top:15px;width:100%"><i class="fas fa-paper-plane"></i> Send to All Users</button>
+    </div>
+    <div class="card glass">
+      <h3><i class="fas fa-tools"></i> Tools</h3>
+      <button class="neon-button" onclick="clearCache()" style="margin-bottom:10px;">Clear Stream Cache</button>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <div class="nav-item active" data-page="streamer"><i class="fas fa-play-circle"></i><span>Stream</span></div>
+  <div class="nav-item" data-page="settings"><i class="fas fa-cog"></i><span>Settings</span></div>
+  <div class="nav-item" data-page="admin"><i class="fas fa-crown"></i><span>Admin</span></div>
+</div>
+
+<script>
+// ---------- Global State ----------
+let currentUser = null;
+let isAdmin = false;
+let deviceId = localStorage.getItem('neon_device_id');
+if (!deviceId) { deviceId = 'dev-' + Math.random().toString(36).substr(2, 16); localStorage.setItem('neon_device_id', deviceId); }
+let qualityMode = 'normal';
+let authRequired = true;
+
+// ---------- Helper Functions ----------
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(page + 'Page').classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+  if (page === 'settings') {
+    if (currentUser && currentUser.username !== 'Guest') {
+      document.getElementById('settingsLoggedOut').classList.add('hidden');
+      document.getElementById('settingsLoggedIn').style.display = 'block';
+      loadSettings();
+    } else {
+      document.getElementById('settingsLoggedOut').classList.remove('hidden');
+      document.getElementById('settingsLoggedIn').style.display = 'none';
+    }
+  }
+  if (page === 'admin') {
+    if (!isAdmin) {
+      document.getElementById('adminLoginOverlay').classList.remove('hidden');
+      switchPage('streamer');
+      return;
+    }
+    loadAdminUsers();
+    loadAuthStatus();
+  }
+}
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => switchPage(el.dataset.page));
+});
+
+// ---------- Overlay Helpers ----------
+function closeAllOverlays() {
+  document.getElementById('loginOverlay').classList.add('hidden');
+  document.getElementById('adminLoginOverlay').classList.add('hidden');
+}
+
+// ---------- Broadcast ----------
+let lastBroadcastTimestamp = 0;
+async function checkBroadcast() {
+  try {
+    const res = await fetch('/api/broadcast/latest');
+    const data = await res.json();
+    if (data.message && data.timestamp > lastBroadcastTimestamp) {
+      lastBroadcastTimestamp = data.timestamp;
+      document.getElementById('broadcastMessageText').textContent = data.message;
+      document.getElementById('broadcastBanner').classList.remove('hidden');
+    }
+  } catch(e) {}
+}
+function dismissBroadcast() { document.getElementById('broadcastBanner').classList.add('hidden'); }
+checkBroadcast(); setInterval(checkBroadcast, 30000);
+
+// ---------- Auth (with Guest Mode) ----------
+async function checkAuth() {
+  try {
+    const statusRes = await fetch('/api/public/auth_status');
+    const statusData = await statusRes.json();
+    authRequired = statusData.auth_required;
+
+    if (!authRequired) {
+      currentUser = { username: 'Guest', balance: 0, expires_at: null, device_id: 'guest', is_admin: false };
+      isAdmin = false;
+      updateUIForUser();
+      return true;
+    }
+
+    const savedUser = localStorage.getItem('neon_user');
+    if (!savedUser) return false;
+    const user = JSON.parse(savedUser);
+    const res = await fetch('/api/auth/verify', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username: user.username, device_id: deviceId})
+    });
+    const data = await res.json();
+    if (data.valid) {
+      currentUser = data.user;
+      isAdmin = data.user.is_admin;
+      updateUIForUser();
+      return true;
+    } else {
+      localStorage.removeItem('neon_user');
+      return false;
+    }
+  } catch(e) { return false; }
+}
+
+function updateUIForUser() {
+  if (!currentUser) return;
+  document.getElementById('settingsCode').textContent = currentUser.username;
+  const days = Math.floor((currentUser.balance || 0) / 0.36);
+  const maxDays = 365;
+  const percent = Math.min((days / maxDays) * 100, 100);
+  document.getElementById('daysBar').style.width = percent + '%';
+  document.getElementById('daysCount').textContent = days;
+  document.getElementById('settingsExpires').textContent = currentUser.expires_at ? new Date(currentUser.expires_at).toLocaleDateString() : 'Never';
+  document.getElementById('settingsDeviceId').textContent = currentUser.device_id || '-----';
+  const bound = currentUser.device_id && currentUser.device_id === deviceId;
+  document.getElementById('deviceStatus').innerHTML = bound ? 
+    '<span class="badge badge-success"><i class="fas fa-check"></i> Device Bound</span>' : 
+    '<span class="badge badge-danger"><i class="fas fa-times"></i> Not Bound</span>';
+}
+
+async function loginWithCode(code) {
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username: code.toUpperCase(), device_id: deviceId})
+    });
+    const data = await res.json();
+    if (data.success) {
+      currentUser = data.user;
+      isAdmin = data.user.is_admin;
+      if (data.user.device_id && data.user.device_id !== 'guest') {
+        deviceId = data.user.device_id;
+        localStorage.setItem('neon_device_id', deviceId);
+      }
+      localStorage.setItem('neon_user', JSON.stringify({username: currentUser.username}));
+      closeAllOverlays();
+      updateUIForUser();
+      showTemporaryMessage('✅ Welcome back!');
+      switchPage('streamer');
+      return true;
+    } else {
+      document.getElementById('loginError').textContent = data.error || 'Invalid code';
+      return false;
+    }
+  } catch(e) {
+    document.getElementById('loginError').textContent = 'Network error';
+    return false;
+  }
+}
+
+async function adminLogin(password) {
+  try {
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({password})
+    });
+    const data = await res.json();
+    if (data.success) {
+      currentUser = data.user;
+      isAdmin = true;
+      localStorage.setItem('neon_user', JSON.stringify({username: currentUser.username}));
+      closeAllOverlays();
+      updateUIForUser();
+      switchPage('admin');
+      return true;
+    } else {
+      document.getElementById('adminLoginError').textContent = 'Invalid password';
+      return false;
+    }
+  } catch(e) { return false; }
+}
+
+function logout() {
+  localStorage.removeItem('neon_user');
+  currentUser = null;
+  isAdmin = false;
+  switchPage('streamer');
+  showTemporaryMessage('👋 You have been logged out');
+  document.getElementById('settingsLoggedOut').classList.remove('hidden');
+  document.getElementById('settingsLoggedIn').style.display = 'none';
+}
+
+function showTemporaryMessage(msg) {
+  document.getElementById('broadcastMessageText').textContent = msg;
+  document.getElementById('broadcastBanner').classList.remove('hidden');
+  setTimeout(() => document.getElementById('broadcastBanner').classList.add('hidden'), 5000);
+}
+
+// ---------- Quality Toggle ----------
+function toggleQuality() {
+  const track = document.querySelector('#qualityToggle .toggle-track');
+  const label = document.getElementById('qualityLabel');
+  qualityMode = qualityMode === 'normal' ? 'high' : 'normal';
+  track.classList.toggle('active', qualityMode === 'high');
+  label.textContent = qualityMode === 'high' ? 'High' : 'Normal';
+}
+
+// ---------- Stream ----------
+let progressInterval = null;
+function startProgress() {
+  const bar = document.getElementById('progressBar'), perc = document.getElementById('progressPercent');
+  let percent = 0;
+  if (progressInterval) clearInterval(progressInterval);
+  bar.style.width = '0%'; perc.textContent = '0%';
+  progressInterval = setInterval(() => {
+    if (percent >= 95) clearInterval(progressInterval);
+    else { percent += (95 - percent) * 0.08 + 2; percent = Math.min(percent, 95); bar.style.width = percent + '%'; perc.textContent = Math.floor(percent) + '%'; }
+  }, 200);
+}
+function finishProgress() { clearInterval(progressInterval); document.getElementById('progressBar').style.width = '100%'; document.getElementById('progressPercent').textContent = '100%'; setTimeout(() => document.getElementById('loadingContainer').classList.add('hidden'), 400); }
+function abortProgress() { if (progressInterval) clearInterval(progressInterval); }
+
+function extractVideoIdFromUrl(url) {
+  const regex = /(?:v=|\/)([0-9A-Za-z_-]{11})(?:[?&]|$)/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
+
+async function extractStream(url) {
+  if (authRequired && !currentUser) {
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    return;
+  }
+  document.getElementById('errorMessage').textContent = '';
+  document.getElementById('previewCard').classList.add('hidden');
+  document.getElementById('loadingContainer').classList.remove('hidden');
+  startProgress();
+  try {
+    const res = await fetch('/api/stream', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        url,
+        username: currentUser ? currentUser.username : 'Guest',
+        device_id: currentUser ? currentUser.device_id : 'guest',
+        mode: qualityMode
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    if (qualityMode === 'high') {
+      if (data.job_id) {
+        await waitForHighQualityDownload(data.job_id);
+      } else if (data.stream_url) {
+        displayPreview(data.title, data.thumbnail, data.duration, data.stream_url);
+        addToHistory({...data, url: data.stream_url});
+        finishProgress();
+      }
+    } else {
+      finishProgress();
+      displayPreview(data.title, data.thumbnail, data.duration, data.stream_url);
+      addToHistory({...data, url: data.stream_url});
+    }
+  } catch(e) {
+    abortProgress();
+    document.getElementById('loadingContainer').classList.add('hidden');
+    document.getElementById('errorMessage').textContent = e.message;
+  }
+}
+
+async function waitForHighQualityDownload(jobId) {
+  const checkInterval = setInterval(async () => {
+    try {
+      const progRes = await fetch(`/api/stream/progress/${jobId}`);
+      const prog = await progRes.json();
+      const percent = prog.percent || 0;
+      const eta = prog.eta || 0;
+      const downloadedBytes = prog.downloaded_bytes || 0;
+      const totalBytes = prog.total_bytes || 0;
+      const downloadedMB = (downloadedBytes / (1024 * 1024)).toFixed(1);
+      const totalMB = totalBytes > 0 ? (totalBytes / (1024 * 1024)).toFixed(1) : '?';
+      
+      document.getElementById('progressBar').style.width = percent + '%';
+      document.getElementById('progressPercent').textContent = Math.floor(percent) + '%';
+      
+      // Build informative message
+      let msg = '';
+      if (eta > 0) {
+        const mins = Math.floor(eta / 60);
+        const secs = eta % 60;
+        msg += `⚡ ETA ${mins}:${secs.toString().padStart(2,'0')} `;
+      }
+      msg += `📦 ${downloadedMB}MB / ${totalMB}MB`;
+      document.getElementById('statusMessage').textContent = msg;
+      
+      if (prog.status === 'done') {
+        clearInterval(checkInterval);
+        finishProgress();
+        displayPreview(prog.title, prog.thumbnail, prog.duration, prog.stream_url);
+        addToHistory({title: prog.title, thumbnail: prog.thumbnail, duration: prog.duration, url: prog.stream_url});
+      } else if (prog.status === 'error') {
+        clearInterval(checkInterval);
+        abortProgress();
+        document.getElementById('errorMessage').textContent = prog.error || 'Download failed';
+      }
+    } catch(e) {}
+  }, 1000);
+}
+
+function displayPreview(title, thumb, dur, streamUrl) {
+  document.getElementById('videoTitle').textContent = title;
+  document.getElementById('duration').innerHTML = `<i class="far fa-clock"></i> ${Math.floor(dur/60)}:${String(dur%60).padStart(2,'0')}`;
+  const player = document.getElementById('videoPlayer');
+  player.innerHTML = `<source src="${streamUrl}" type="video/mp4">`;
+  player.load();
+  document.getElementById('previewCard').classList.remove('hidden');
+}
+
+// ---------- History ----------
+let history = JSON.parse(localStorage.getItem('videoHistory') || '[]');
+function addToHistory(v){ if(!history.find(h=>h.url===v.url)){ history.unshift(v); if(history.length>10) history.pop(); localStorage.setItem('videoHistory', JSON.stringify(history)); } renderHistory(); }
+function renderHistory(){
+  const c = document.getElementById('historyList');
+  if(!c) return;
+  if(!history.length){ c.innerHTML = '<p style="color:var(--text2);text-align:center;padding:20px">No videos yet.</p>'; return; }
+  c.innerHTML = history.map(h => `
+    <div class="history-item" data-url="${h.url}" data-title="${h.title}" data-thumb="${h.thumbnail}" data-duration="${h.duration}">
+      <img src="${h.thumbnail}" class="history-thumb" onerror="this.src='https://via.placeholder.com/80x45/0a0a0a/00f3ff?text=No+thumb'">
+      <div><h4>${h.title}</h4></div>
+      <i class="fas fa-play-circle" style="font-size:1.5rem;color:var(--blue)"></i>
+    </div>
+  `).join('');
+  document.querySelectorAll('.history-item').forEach(el => el.onclick = () => {
+    const url = el.dataset.url, title = el.dataset.title, thumb = el.dataset.thumb, duration = parseInt(el.dataset.duration);
+    displayPreview(title, thumb, duration, url);
+    document.getElementById('previewCard').classList.remove('hidden');
+  });
+}
+document.getElementById('clearHistoryBtn')?.addEventListener('click', () => { if(confirm('Clear history?')){ history = []; localStorage.removeItem('videoHistory'); renderHistory(); } });
+renderHistory();
+
+// ---------- Settings ----------
+function loadSettings() { if (!currentUser) return; updateUIForUser(); }
+
+// ---------- Admin ----------
+async function loadAdminUsers() {
+  try {
+    const res = await fetch('/api/admin/users');
+    const users = await res.json();
+    const html = users.map(u => `
+      <div class="admin-user-card">
+        <div>
+          <code style="font-size:1.1rem">${u.username}</code>
+          <span style="margin-left:10px">${Math.floor(u.balance/0.36)} days</span>
+          <span style="margin-left:10px;font-size:0.8rem;color:var(--text2)">Exp: ${u.expires_at ? new Date(u.expires_at).toLocaleDateString() : 'Never'}</span>
+        </div>
+        <div class="admin-user-actions">
+          <button class="neon-button" style="padding:6px 12px;" onclick="adminTopup(${u.id})">Add Days</button>
+          <button class="neon-button" style="padding:6px 12px;" onclick="viewLogs(${u.id})">Logs</button>
+          <button class="neon-button" style="padding:6px 12px;background:#ff4d4d20;border-color:#ff4d4d;color:#ff8080" onclick="clearDevice(${u.id})">Clear Device</button>
+          <button class="neon-button" style="padding:6px 12px;background:#ff4d4d20;border-color:#ff4d4d;color:#ff8080" onclick="deleteUser(${u.id})">Delete</button>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('adminUserList').innerHTML = html || '<p>No users</p>';
+  } catch(e) {}
+}
+
+async function loadAuthStatus() {
+  try {
+    const res = await fetch('/api/public/auth_status');
+    const data = await res.json();
+    authRequired = data.auth_required;
+    const track = document.getElementById('authToggle');
+    track.classList.toggle('active', authRequired);
+  } catch(e) {}
+}
+
+async function toggleAuthRequired() {
+  try {
+    const res = await fetch('/api/admin/toggle_auth', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      authRequired = data.auth_required;
+      document.getElementById('authToggle').classList.toggle('active', authRequired);
+      if (!authRequired) {
+        logout();
+        currentUser = { username: 'Guest', balance: 0, expires_at: null, device_id: 'guest', is_admin: false };
+        updateUIForUser();
+      }
+    }
+  } catch(e) { alert('Failed to toggle auth'); }
+}
+
+async function adminCreateUser() {
+  let username = document.getElementById('adminUsername').value.trim();
+  const expires = document.getElementById('adminExpires').value;
+  let balance = 0;
+  if (expires) {
+    const expDate = new Date(expires);
+    const today = new Date();
+    const diffTime = expDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays > 0) balance = diffDays * 0.36;
+  }
+  const res = await fetch('/api/admin/create_user', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({username, balance, expires_at: expires || null})
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('generatedCode').innerHTML = `✅ User created: <strong>${data.username}</strong>`;
+    document.getElementById('adminUsername').value = '';
+    document.getElementById('adminExpires').value = '';
+    loadAdminUsers();
+  } else {
+    alert(data.error);
+  }
+}
+
+async function adminTopup(userId) {
+  const days = prompt('Enter days to add (negative to deduct):');
+  if (days === null) return;
+  const daysInt = parseInt(days);
+  if (isNaN(daysInt)) { alert('Invalid number'); return; }
+  await fetch('/api/admin/update_balance', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({user_id: userId, days: daysInt})
+  });
+  loadAdminUsers();
+}
+
+async function deleteUser(userId) {
+  if (!confirm('Permanently delete this user and all their logs?')) return;
+  await fetch('/api/admin/delete_user', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user_id: userId}) });
+  loadAdminUsers();
+}
+
+async function clearDevice(userId) {
+  if (!confirm('Clear device binding? User will be logged out from their device.')) return;
+  await fetch('/api/admin/clear_device', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({user_id: userId}) });
+  loadAdminUsers();
+}
+
+async function viewLogs(userId) {
+  const res = await fetch(`/api/admin/user_logs/${userId}`);
+  const logs = await res.json();
+  const modal = document.createElement('div');
+  modal.className = 'logs-modal';
+  modal.innerHTML = `
+    <div class="logs-content glass">
+      <h3 style="margin-bottom:20px">Stream History</h3>
+      <div style="max-height:400px;overflow-y:auto">
+        ${logs.length ? logs.map(l => `
+          <div style="padding:10px;border-bottom:1px solid var(--border)">
+            <strong>${l.title}</strong><br>
+            <small>${new Date(l.timestamp).toLocaleString()}</small>
+          </div>
+        `).join('') : '<p>No streams yet.</p>'}
+      </div>
+      <button class="neon-button" style="margin-top:20px;width:100%" onclick="this.closest('.logs-modal').remove()">Close</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function clearCache() {
+  if (!confirm('Clear stream cache?')) return;
+  await fetch('/api/admin/clear-cache', {method:'POST'});
+  alert('Cache cleared');
+}
+
+async function sendBroadcast() {
+  const msg = document.getElementById('broadcastMessage').value.trim();
+  if (!msg) { alert('Enter a message'); return; }
+  const res = await fetch('/api/admin/notify', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message: msg}) });
+  const data = await res.json();
+  if (data.success) { document.getElementById('broadcastMessage').value = ''; alert('Broadcast sent'); checkBroadcast(); }
+  else alert('Error: ' + (data.error || 'Failed'));
+}
+
+// ---------- Event Listeners ----------
+document.getElementById('extractBtn').addEventListener('click', () => extractStream(document.getElementById('urlInput').value.trim()));
+document.getElementById('submitCodeBtn').addEventListener('click', () => loginWithCode(document.getElementById('accessCodeInput').value.trim()));
+document.getElementById('adminLoginLink').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginOverlay').classList.add('hidden'); document.getElementById('adminLoginOverlay').classList.remove('hidden'); });
+document.getElementById('backToUserLink').addEventListener('click', (e) => { e.preventDefault(); closeAllOverlays(); });
+document.getElementById('submitAdminBtn').addEventListener('click', () => adminLogin(document.getElementById('adminPasswordInput').value));
+
+// ---------- Init ----------
+(async function init() {
+  await checkAuth();
+  updateUIForUser();
+  if (!currentUser || currentUser.username === 'Guest') {
+    document.getElementById('settingsLoggedOut').classList.remove('hidden');
+    document.getElementById('settingsLoggedIn').style.display = 'none';
+  } else {
+    document.getElementById('settingsLoggedOut').classList.add('hidden');
+    document.getElementById('settingsLoggedIn').style.display = 'block';
+  }
+})();
+</script>
+</body>
+</html>
